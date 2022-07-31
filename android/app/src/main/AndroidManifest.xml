@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="lt.ragaisis.homework.chuck_norris_joke">
    <application
-        android:label="chuck_norris_joke"
+        android:label="Chuck Norris Joke"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
