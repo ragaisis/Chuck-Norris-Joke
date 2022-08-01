@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:chuck_norris_joke/data/repository.dart';
 import 'package:chuck_norris_joke/models/joke.dart';
+import 'package:chuck_norris_joke/models/joke_list.dart';
 import 'package:mobx/mobx.dart';
 
 part 'jokeGenerator.g.dart';
@@ -24,14 +27,21 @@ abstract class _JokeGenerator with Store {
   String category = "";
 
   @observable
-  Joke? joke = null;
+  String error = "";
 
   @observable
-  ObservableFuture<Joke?> getJokeByCategoryFuture =
-      ObservableFuture<Joke?>(ObservableFuture.value(null));
+  ObservableList<Joke> jokesList = ObservableList();
 
-  @computed
-  bool get isAnotherJokeButtonEnabled => query.isNotEmpty;
+  @observable
+  bool isLoading = false;
+
+  @observable
+  bool isAnotherJokeButtonEnabled = true;
+
+  @observable
+  ObservableFuture<JokeList> getJokesBySearchFuture =
+      ObservableFuture<JokeList>(
+          ObservableFuture.value(JokeList(jokes: List.empty())));
 
   @computed
   String get detailsTitle {
@@ -49,6 +59,9 @@ abstract class _JokeGenerator with Store {
   @action
   void closeDetailsScreen() {
     isDetailsScreenVisible = false;
+    isAnotherJokeButtonEnabled = true;
+    isLoading = false;
+    jokesList.clear();
   }
 
   @action
@@ -57,26 +70,53 @@ abstract class _JokeGenerator with Store {
   }
 
   @action
-  void categorySelected(String value) {
-    query = "";
-    category = value;
-
-    final future = _repository.getRandomJokeByCategory(value);
-    getJokeByCategoryFuture = ObservableFuture(future);
-
-    future.then((joke) {
-      this.joke = joke;
-      openDetailsScreen();
-    }).catchError((error) {
-      print(error);
-    });
-
+  Future<void> categorySelected(String value, bool reselected) async {
+    if (!reselected) {
+      query = "";
+      category = value;
+    }
+    final newJoke = await _repository.getRandomJokeByCategory(value);
+    if (jokesList.isEmpty ||
+        (jokesList.isNotEmpty &&
+            reselected &&
+            jokesList.first.id != newJoke.id)) {
+      this.jokesList.clear();
+      this.jokesList.addAll(JokeList(jokes: List.filled(1, newJoke)).jokes);
+    } else {
+      isAnotherJokeButtonEnabled = false;
+    }
+    isLoading = false;
+    openDetailsScreen();
   }
 
   @action
   void searchByQuery(String query) {
     category = "";
     this.query = query;
-    openDetailsScreen();
+
+    final future = _repository.getJokesBySearch(query);
+    getJokesBySearchFuture = ObservableFuture(future);
+
+    future.then((response) {
+      this.jokesList.addAll(response.jokes);
+      if (jokesList.length <= 1) {
+        isAnotherJokeButtonEnabled = false;
+      }
+      isLoading = false;
+      openDetailsScreen();
+    }).catchError((exception) {
+      this.error = "No items found based on search: $query";
+      print(exception);
+    });
+  }
+
+  @action
+  void showAnotherRandomJoke() {
+    if (category.isNotEmpty) {
+      categorySelected(category, true);
+    } else {
+      jokesList.shuffle();
+      isLoading = false;
+    }
   }
 }

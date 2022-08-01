@@ -2,6 +2,7 @@ import 'package:chuck_norris_joke/data/remote/endpoints.dart';
 import 'package:chuck_norris_joke/data/remote/network_exception.dart';
 import 'package:chuck_norris_joke/data/remote/rest_client.dart';
 import 'package:chuck_norris_joke/models/joke.dart';
+import 'package:chuck_norris_joke/models/joke_list.dart';
 
 class JokeApi {
   final RestClient _restClient;
@@ -24,6 +25,16 @@ class JokeApi {
         .then((dynamic response) {
       print("http getRandomJokeByCategory response: $response");
       return Joke.fromMap(response);
+    }).catchError((error) => throw NetworkException(message: error));
+  }
+
+  Future<JokeList> getJokesBySearch(String query) async {
+    Map<String, String> queryParams = {'query': query};
+    return _restClient
+        .get(Endpoints.searchForJoke, queryParams)
+        .then((dynamic response) {
+      print("http getJokesBySearch response: $response");
+      return JokeList.fromJson(response['result']);
     }).catchError((error) => throw NetworkException(message: error));
   }
 }

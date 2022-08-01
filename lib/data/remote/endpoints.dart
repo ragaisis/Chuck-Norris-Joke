@@ -9,4 +9,5 @@ class Endpoints {
 
   static const String getCategories = "/jokes/categories";
   static const String getRandomJoke = "/jokes/random";
+  static const String searchForJoke = "/jokes/search";
 }

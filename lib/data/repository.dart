@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chuck_norris_joke/data/remote/joke_api.dart';
 import 'package:chuck_norris_joke/models/joke.dart';
+import 'package:chuck_norris_joke/models/joke_list.dart';
 
 class Repository {
   final JokeApi _jokeApi;
@@ -17,4 +18,11 @@ class Repository {
         .getRandomJokeByCategory(category)
         .catchError((error) => throw error);
   }
+
+  Future<JokeList> getJokesBySearch(String query) async {
+    return await _jokeApi
+        .getJokesBySearch(query)
+        .catchError((error) => throw error);
+  }
+
 }
