@@ -1,3 +1,4 @@
+import 'package:chuck_norris_joke/data/repository.dart';
 import 'package:mobx/mobx.dart';
 
 part 'categories.g.dart';
@@ -5,29 +6,30 @@ part 'categories.g.dart';
 class Categories = _Categories with _$Categories;
 
 abstract class _Categories with Store {
+  late Repository _repository;
+
+  _Categories(Repository repository) : this._repository = repository;
+
+  static ObservableFuture<List<String>> emptyPostResponse =
+      ObservableFuture.value(List.empty());
+
   @observable
-  ObservableList<String> categories = ObservableList<String>();
+  ObservableFuture<List<String>> fetchCategoriesFuture =
+      ObservableFuture<List<String>>(emptyPostResponse);
+
+  @observable
+  List<String> categories = List.empty();
 
   @action
-  void getCategories() {
-    // https://api.chucknorris.io/jokes/categories
-    if (categories.isEmpty) {
-      categories.add("animal");
-      categories.add("career");
-      categories.add("celebrity");
-      categories.add("dev");
-      categories.add("explicit");
-      categories.add("fashion");
-      categories.add("food");
-      categories.add("history");
-      categories.add("money");
-      categories.add("movie");
-      categories.add("music");
-      categories.add("political");
-      categories.add("religion");
-      categories.add("science");
-      categories.add("sport");
-      categories.add("travel");
-    }
+  Future getCategories() async {
+    final future = _repository.getCategories();
+    fetchCategoriesFuture = ObservableFuture(future);
+
+    future.then((categoryList) {
+      this.categories = categoryList;
+    }).catchError((error) {
+      print(error);
+    });
+
   }
 }
