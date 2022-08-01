@@ -4,6 +4,7 @@ class JokeDetailsScreen extends StatelessWidget {
 
   final VoidCallback onBackPressed;
   final String title;
+  final String joke;
   final bool isNextJokeButtonEnabled;
   final bool isDetailsScreenVisible;
 
@@ -11,6 +12,7 @@ class JokeDetailsScreen extends StatelessWidget {
     Key? key,
     required this.onBackPressed,
     required this.title,
+    required this.joke,
     required this.isNextJokeButtonEnabled,
     required this.isDetailsScreenVisible,
   }) : super(key: key);
@@ -56,8 +58,7 @@ class JokeDetailsScreen extends StatelessWidget {
                   'https://api.chucknorris.io/img/avatar/chuck-norris.png'),
               Container(
                 margin: EdgeInsets.only(top: 24),
-                child: Text(
-                  "\“Santa was real that is til he forgot Chuck Norris' christmas present.\”",
+                child: Text(joke,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16.0),
                 ),

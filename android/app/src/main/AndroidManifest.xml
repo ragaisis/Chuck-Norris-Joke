@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="lt.ragaisis.homework.chuck_norris_joke">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
    <application
         android:label="Chuck Norris Joke"
         android:icon="@mipmap/ic_launcher">

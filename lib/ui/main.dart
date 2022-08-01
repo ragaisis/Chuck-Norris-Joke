@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:chuck_norris_joke/data/repository.dart';
+import 'package:chuck_norris_joke/di/service_locator.dart';
 import 'package:chuck_norris_joke/stores/categories.dart';
 import 'package:chuck_norris_joke/ui/joke_details_screen.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +11,17 @@ import 'package:provider/provider.dart';
 import '../stores/jokeGenerator.dart';
 import '../widgets/search_field_widget.dart';
 
-final jokeGenerator = JokeGenerator();
+final jokeGeneratorStore = JokeGenerator(getIt<Repository>());
+final categoriesStore = Categories(getIt<Repository>());
 
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  await setupLocator();
+  return runZonedGuarded(() async {
+    runApp(MyApp());
+  }, (error, stack) {
+    print(stack);
+    print(error);
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -31,8 +42,11 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
-      create: (context) => Categories(),
+    return MultiProvider(
+      providers: [
+        Provider<Categories>(create: (_) => categoriesStore),
+        Provider<JokeGenerator>(create: (_) => jokeGeneratorStore),
+      ],
       child: Stack(children: [
         Scaffold(
           resizeToAvoidBottomInset: true,
@@ -56,23 +70,23 @@ class MyHomePage extends StatelessWidget {
                     left: 38, top: 2, right: 38, bottom: 24),
                 child: Observer(
                   builder: (_) => SearchFieldWidget(
-                    hintText: jokeGenerator.isSearchActive
+                    hintText: jokeGeneratorStore.isSearchActive
                         ? ''
                         : 'Search for a random joke',
                     onClearPressed: () async {
-                      jokeGenerator.setSearchActiveState(false);
+                      jokeGeneratorStore.setSearchActiveState(false);
                     },
                     onFocusChanged: (hasFocus) async {
-                      jokeGenerator.setSearchActiveState(hasFocus);
+                      jokeGeneratorStore.setSearchActiveState(hasFocus);
                     },
                     onQuerySubmitted: (query) async {
-                      jokeGenerator.searchByQuery(query);
+                      jokeGeneratorStore.searchByQuery(query);
                     },
                   ),
                 ),
               ),
               Observer(
-                builder: (_) => Text(jokeGenerator.isSearchActive
+                builder: (_) => Text(jokeGeneratorStore.isSearchActive
                     ? 'Search for a random joke'
                     : 'Or choose a category'),
               ),
@@ -81,7 +95,7 @@ class MyHomePage extends StatelessWidget {
           )),
           floatingActionButton: FloatingActionButton(
             onPressed: () => {
-              jokeGenerator.closeDetailsScreen(),
+              jokeGeneratorStore.closeDetailsScreen(),
             },
             tooltip: 'Increment',
             child: Icon(Icons.add),
@@ -90,15 +104,19 @@ class MyHomePage extends StatelessWidget {
         Observer(
             builder: (_) => Visibility(
                 child: JokeDetailsScreen(
-                  title: jokeGenerator.detailsTitle,
-                  isDetailsScreenVisible: jokeGenerator.isDetailsScreenVisible,
+                  title: jokeGeneratorStore.detailsTitle,
+                  joke: jokeGeneratorStore.joke != null
+                      ? jokeGeneratorStore.joke!.title
+                      : '',
+                  isDetailsScreenVisible:
+                      jokeGeneratorStore.isDetailsScreenVisible,
                   isNextJokeButtonEnabled:
-                      jokeGenerator.isAnotherJokeButtonEnabled,
+                      jokeGeneratorStore.isAnotherJokeButtonEnabled,
                   onBackPressed: () {
-                    jokeGenerator.closeDetailsScreen();
+                    jokeGeneratorStore.closeDetailsScreen();
                   },
                 ),
-                visible: jokeGenerator.isDetailsScreenVisible))
+                visible: jokeGeneratorStore.isDetailsScreenVisible))
       ]),
     );
   }
@@ -109,8 +127,7 @@ class CategoriesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final list = Provider.of<Categories>(context);
-    list.getCategories();
+    categoriesStore.getCategories();
 
     return Observer(
       builder: (_) => Container(
@@ -127,12 +144,12 @@ class CategoriesGrid extends StatelessWidget {
                   mainAxisExtent: 50,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16),
-              itemCount: list.categories.length,
+              itemCount: categoriesStore.categories.length,
               itemBuilder: (BuildContext ctx, index) {
                 return InkWell(
                   onTap: () {
-                    jokeGenerator
-                        .categorySelected(list.categories.elementAt(index));
+                    jokeGeneratorStore.categorySelected(
+                        categoriesStore.categories.elementAt(index));
                   },
                   child: Card(
                     elevation: 2,
@@ -144,7 +161,7 @@ class CategoriesGrid extends StatelessWidget {
                       color: Colors.white,
                       width: 140,
                       height: 50,
-                      child: Text(list.categories.elementAt(index),
+                      child: Text(categoriesStore.categories.elementAt(index),
                           style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
