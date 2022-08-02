@@ -13,14 +13,12 @@ class RestClient {
       return http.get(Uri.https(Endpoints.baseUrl, path, queryParams)).then(_createResponse);
   }
 
-  getCategories() {}
-
   dynamic _createResponse(http.Response response) {
     final String res = response.body;
     final int statusCode = response.statusCode;
 
     if (statusCode < 200 || statusCode > 400) {
-      throw NetworkException(
+      throw ParsingException(
           message: 'Error fetching data from server', statusCode: statusCode);
     }
 

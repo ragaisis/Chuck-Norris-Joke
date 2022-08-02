@@ -50,37 +50,6 @@ mixin _$JokeGenerator on _JokeGenerator, Store {
     });
   }
 
-  late final _$queryAtom = Atom(name: '_JokeGenerator.query', context: context);
-
-  @override
-  String get query {
-    _$queryAtom.reportRead();
-    return super.query;
-  }
-
-  @override
-  set query(String value) {
-    _$queryAtom.reportWrite(value, super.query, () {
-      super.query = value;
-    });
-  }
-
-  late final _$categoryAtom =
-      Atom(name: '_JokeGenerator.category', context: context);
-
-  @override
-  String get category {
-    _$categoryAtom.reportRead();
-    return super.category;
-  }
-
-  @override
-  set category(String value) {
-    _$categoryAtom.reportWrite(value, super.category, () {
-      super.category = value;
-    });
-  }
-
   late final _$errorAtom = Atom(name: '_JokeGenerator.error', context: context);
 
   @override
@@ -145,20 +114,52 @@ mixin _$JokeGenerator on _JokeGenerator, Store {
     });
   }
 
-  late final _$getJokesBySearchFutureAtom =
-      Atom(name: '_JokeGenerator.getJokesBySearchFuture', context: context);
+  late final _$_jokesBySearchFutureAtom =
+      Atom(name: '_JokeGenerator._jokesBySearchFuture', context: context);
 
   @override
-  ObservableFuture<JokeList> get getJokesBySearchFuture {
-    _$getJokesBySearchFutureAtom.reportRead();
-    return super.getJokesBySearchFuture;
+  ObservableFuture<JokeList> get _jokesBySearchFuture {
+    _$_jokesBySearchFutureAtom.reportRead();
+    return super._jokesBySearchFuture;
   }
 
   @override
-  set getJokesBySearchFuture(ObservableFuture<JokeList> value) {
-    _$getJokesBySearchFutureAtom
-        .reportWrite(value, super.getJokesBySearchFuture, () {
-      super.getJokesBySearchFuture = value;
+  set _jokesBySearchFuture(ObservableFuture<JokeList> value) {
+    _$_jokesBySearchFutureAtom.reportWrite(value, super._jokesBySearchFuture,
+        () {
+      super._jokesBySearchFuture = value;
+    });
+  }
+
+  late final _$_queryAtom =
+      Atom(name: '_JokeGenerator._query', context: context);
+
+  @override
+  String get _query {
+    _$_queryAtom.reportRead();
+    return super._query;
+  }
+
+  @override
+  set _query(String value) {
+    _$_queryAtom.reportWrite(value, super._query, () {
+      super._query = value;
+    });
+  }
+
+  late final _$_categoryAtom =
+      Atom(name: '_JokeGenerator._category', context: context);
+
+  @override
+  String get _category {
+    _$_categoryAtom.reportRead();
+    return super._category;
+  }
+
+  @override
+  set _category(String value) {
+    _$_categoryAtom.reportWrite(value, super._category, () {
+      super._category = value;
     });
   }
 
@@ -234,13 +235,10 @@ mixin _$JokeGenerator on _JokeGenerator, Store {
     return '''
 isSearchActive: ${isSearchActive},
 isDetailsScreenVisible: ${isDetailsScreenVisible},
-query: ${query},
-category: ${category},
 error: ${error},
 jokesList: ${jokesList},
 isLoading: ${isLoading},
 isAnotherJokeButtonEnabled: ${isAnotherJokeButtonEnabled},
-getJokesBySearchFuture: ${getJokesBySearchFuture},
 detailsTitle: ${detailsTitle}
     ''';
   }

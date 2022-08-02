@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:chuck_norris_joke/data/repository.dart';
 import 'package:chuck_norris_joke/models/joke.dart';
 import 'package:chuck_norris_joke/models/joke_list.dart';
+import 'package:chuck_norris_joke/utils/exceptions.dart';
 import 'package:mobx/mobx.dart';
 
 part 'jokeGenerator.g.dart';
 
 class JokeGenerator = _JokeGenerator with _$JokeGenerator;
 
+//Currently JokeGenerator is shared in 2 screens
+// But it may be better to have separate store for JokeDetails screen
 abstract class _JokeGenerator with Store {
   late Repository _repository;
 
@@ -17,14 +20,10 @@ abstract class _JokeGenerator with Store {
   @observable
   bool isSearchActive = false;
 
+  //isDetailsScreenVisible could be saved in preference and
+  // app could use Navigator to navigate from home page to details
   @observable
   bool isDetailsScreenVisible = false;
-
-  @observable
-  String query = "";
-
-  @observable
-  String category = "";
 
   @observable
   String error = "";
@@ -39,16 +38,21 @@ abstract class _JokeGenerator with Store {
   bool isAnotherJokeButtonEnabled = true;
 
   @observable
-  ObservableFuture<JokeList> getJokesBySearchFuture =
-      ObservableFuture<JokeList>(
-          ObservableFuture.value(JokeList(jokes: List.empty())));
+  ObservableFuture<JokeList> _jokesBySearchFuture = ObservableFuture<JokeList>(
+      ObservableFuture.value(JokeList(jokes: List.empty())));
+
+  @observable
+  String _query = "";
+
+  @observable
+  String _category = "";
 
   @computed
   String get detailsTitle {
-    if (category.isEmpty) {
-      return "Random joke: \"$query\"";
+    if (_category.isEmpty) {
+      return "Random joke: \"$_query\"";
     } else
-      return "Random joke: $category";
+      return "Random joke: $_category";
   }
 
   @action
@@ -72,10 +76,13 @@ abstract class _JokeGenerator with Store {
   @action
   Future<void> categorySelected(String value, bool reselected) async {
     if (!reselected) {
-      query = "";
-      category = value;
+      _query = "";
+      _category = value;
     }
-    final newJoke = await _repository.getRandomJokeByCategory(value);
+    final newJoke =
+        await _repository.getRandomJokeByCategory(value).catchError((error) {
+      this.error = getExceptionMessage(error);
+    });
     if (jokesList.isEmpty ||
         (jokesList.isNotEmpty &&
             reselected &&
@@ -83,6 +90,7 @@ abstract class _JokeGenerator with Store {
       this.jokesList.clear();
       this.jokesList.addAll(JokeList(jokes: List.filled(1, newJoke)).jokes);
     } else {
+      //if joke is repeated twice in a row another joke button is going to disabled state
       isAnotherJokeButtonEnabled = false;
     }
     isLoading = false;
@@ -91,11 +99,11 @@ abstract class _JokeGenerator with Store {
 
   @action
   void searchByQuery(String query) {
-    category = "";
-    this.query = query;
+    _category = "";
+    this._query = query;
 
     final future = _repository.getJokesBySearch(query);
-    getJokesBySearchFuture = ObservableFuture(future);
+    _jokesBySearchFuture = ObservableFuture(future);
 
     future.then((response) {
       this.jokesList.addAll(response.jokes);
@@ -105,15 +113,14 @@ abstract class _JokeGenerator with Store {
       isLoading = false;
       openDetailsScreen();
     }).catchError((exception) {
-      this.error = "No items found based on search: $query";
-      print(exception);
+      this.error = getExceptionMessage(error);
     });
   }
 
   @action
   void showAnotherRandomJoke() {
-    if (category.isNotEmpty) {
-      categorySelected(category, true);
+    if (_category.isNotEmpty) {
+      categorySelected(_category, true);
     } else {
       jokesList.shuffle();
       isLoading = false;
