@@ -4,6 +4,7 @@ import 'package:chuck_norris_joke/data/remote/joke_api.dart';
 import 'package:chuck_norris_joke/models/joke.dart';
 import 'package:chuck_norris_joke/models/joke_list.dart';
 
+//Repository handles only API calls, but cache & database could be added here
 class Repository {
   final JokeApi _jokeApi;
 
@@ -24,5 +25,4 @@ class Repository {
         .getJokesBySearch(query)
         .catchError((error) => throw error);
   }
-
 }

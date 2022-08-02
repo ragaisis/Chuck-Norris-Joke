@@ -20,13 +20,11 @@ class SearchFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Focus(
         onFocusChange: (hasFocus) {
-          print("has focus status: ${hasFocus}");
           onFocusChanged(hasFocus);
         },
         child: TextField(
           controller: textArea,
           onSubmitted: (String query) {
-            print("search query: $query");
             onQuerySubmitted.call(query);
           },
           decoration: InputDecoration(

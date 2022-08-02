@@ -42,6 +42,21 @@ mixin _$Categories on _Categories, Store {
     });
   }
 
+  late final _$errorAtom = Atom(name: '_Categories.error', context: context);
+
+  @override
+  String get error {
+    _$errorAtom.reportRead();
+    return super.error;
+  }
+
+  @override
+  set error(String value) {
+    _$errorAtom.reportWrite(value, super.error, () {
+      super.error = value;
+    });
+  }
+
   late final _$getCategoriesAsyncAction =
       AsyncAction('_Categories.getCategories', context: context);
 
@@ -54,7 +69,8 @@ mixin _$Categories on _Categories, Store {
   String toString() {
     return '''
 fetchCategoriesFuture: ${fetchCategoriesFuture},
-categories: ${categories}
+categories: ${categories},
+error: ${error}
     ''';
   }
 }
